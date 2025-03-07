@@ -1,12 +1,12 @@
 local Players = game:GetService("Players")
 local Runservice = game:GetService("RunService")
-local RoomFactory = require(script.Parent:WaitForChild("RoomFactory"))
+local RoomModule = require(script.Parent)
 
 local DungeonRoom = {}
 
 export type Dungeon = {
 	Name: string,
-	Room: RoomFactory.Room,
+	Room: RoomModule.Room,
 	State: string,
 	Enemies: {Humanoid?},
 	ForceWin: () -> nil,
@@ -16,7 +16,7 @@ export type Dungeon = {
 	Start: () -> nil
 }
 
-DungeonRoom.ConvertToDungeon = function(Room: RoomFactory.Room) : Dungeon
+DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room) : Dungeon
 	local NewDungeon = {}
 	NewDungeon.Name = Room.Name
 	NewDungeon.Room = Room
