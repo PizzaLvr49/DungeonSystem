@@ -1,7 +1,7 @@
 local ServerStorage = game:GetService("ServerStorage")
-local DungeonGenerator = require(ServerStorage:WaitForChild("Modules").DungeonGenerator)
-local RoomModule = require(ServerStorage.Modules.DungeonGenerator.RoomModule)
-local DungeonRoom = require(ServerStorage.Modules.DungeonGenerator.DungeonRoom)
+ServerStorage:WaitForChild("Modules")
+local RoomModule = require(ServerStorage.Modules.RoomModule)
+local DungeonRoom = require(ServerStorage.Modules.RoomModule.DungeonRoom)
 
 local Rooms = ServerStorage:WaitForChild("Rooms"):GetChildren()
 
