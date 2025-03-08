@@ -3,8 +3,13 @@ local RunService = game:GetService("RunService")
 
 local RoomModule = {}
 
+if RunService:IsStudio() then
+	RoomModule.DebugFolder = workspace:FindFirstChild("Debug") or Instance.new("Folder", workspace)
+	RoomModule.DebugFolder.Name = "Debug"
+end
+
 function RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
-	local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
+	local DebugPart = RoomModule.DebugFolder:FindFirstChild("DebugPart") or Instance.new("Part", RoomModule.DebugFolder)
 	DebugPart.Name = "DebugPart"
 	DebugPart.Size = ModelBoundsSize
 	DebugPart.CFrame = ModelBoundsFrame
