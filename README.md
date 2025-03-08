@@ -11,8 +11,7 @@ DungeonSystem is a Roblox module designed to manage dungeon rooms, including cre
 
 ## Installation
 
-1. Clone the repository to your local machine.
-2. Place the `Modules` folder in your Roblox game's `ServerStorage`.
+1. Place the `Modules` folder in your Roblox game's `ServerStorage`.
 
 ## Usage
 
