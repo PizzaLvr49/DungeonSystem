@@ -3,6 +3,18 @@ local RunService = game:GetService("RunService")
 
 local RoomModule = {}
 
+function RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
+	local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
+	DebugPart.Name = "DebugPart"
+	DebugPart.Size = ModelBoundsSize
+	DebugPart.CFrame = ModelBoundsFrame
+	DebugPart.Anchored = true
+	DebugPart.CanCollide = false
+	DebugPart.Transparency = 0.75
+	DebugPart.Material = Enum.Material.SmoothPlastic
+	DebugPart.Color = Color3.new(0, 1, 0)
+end
+
 export type Room = {
 	Name: string,
 	Model: Model,
@@ -35,23 +47,11 @@ function RoomModule.NewRoom(Model: Model, Frame: CFrame, Name: string, Parent: I
 	end
 
 	-- Functions
-	function RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
-		if not RunService:IsStudio() then warn("Debugging is only meant for developmental purposes") end
-		local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
-		DebugPart.Name = "DebugPart"
-		DebugPart.Size = ModelBoundsSize
-		DebugPart.CFrame = ModelBoundsFrame
-		DebugPart.Anchored = true
-		DebugPart.CanCollide = false
-		DebugPart.Transparency = 0.75
-		DebugPart.Material = Enum.Material.SmoothPlastic
-		DebugPart.Color = Color3.new(0, 1, 0)
-	end
 
 	function NewRoom:GetCharactersInRoom(): {Model?}
 		local ModelBoundsFrame, ModelBoundsSize = self.Model:GetBoundingBox()
 		if RunService:IsStudio() then
-			self:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
+			RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
 		end
 
 		local PartsInRoom = workspace:GetPartBoundsInBox(ModelBoundsFrame, ModelBoundsSize)
