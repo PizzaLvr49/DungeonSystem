@@ -14,10 +14,18 @@ export type Dungeon = {
 	ConnectToWin: (Dungeon, callback: () -> any) -> nil,
 	ConnectToFail: (Dungeon, callback: () -> any) -> nil,
 	Start: (Dungeon) -> nil,
+	Pause: (Dungeon) -> nil,
+	Resume: (Dungeon) -> nil,
 	Reset: (Dungeon) -> nil,
 	EliminateEnemies: (Dungeon) -> nil,
 	EliminatePlayers: (Dungeon) -> nil,
 	UnanchorEnemies: (Dungeon) -> nil,
+	SetTimer: (Dungeon, duration: number) -> nil,
+	UpdateTimer: (Dungeon) -> nil,
+	HandlePlayerJoin: (Dungeon, player: Player) -> nil,
+	HandlePlayerLeave: (Dungeon, player: Player) -> nil,
+	AddScore: (Dungeon, points: number) -> nil,
+	GetScore: (Dungeon) -> number,
 }
 
 DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
@@ -27,7 +35,11 @@ DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
 		Enemies = {},
 		State = "Inactive",
 		RoomWinListeners = {},
-		RoomFailListeners = {}
+		RoomFailListeners = {},
+		RoomPausedListeners = {},
+		RoomResumedListeners = {},
+		Timer = 0,
+		Score = 0,
 	}
 
 	function NewDungeon:ForceWin()
@@ -62,9 +74,58 @@ DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
 		table.insert(self.RoomFailListeners, callback)
 	end
 
+	function NewDungeon:ConnectToPause(callback: () -> any)
+		table.insert(self.RoomPausedListeners, callback)
+	end
+
+	function NewDungeon:ConnectToResume(callback: () -> any)
+		table.insert(self.RoomResumedListeners, callback)
+	end
+
 	function NewDungeon:Start()
 		self.State = "Started"
 		self:UnanchorEnemies()
+		self:SetTimer(300) -- Example: 5-minute timer
+	end
+
+	function NewDungeon:Pause()
+		if self.State == "Started" then
+			self.State = "Paused"
+			for _, CallBack in pairs(self.RoomPausedListeners) do
+				CallBack()
+			end
+		else
+			warn("Room is not in a state that can be paused")
+		end
+	end
+
+	function NewDungeon:Resume()
+		if self.State == "Paused" then
+			self.State = "Started"
+			for _, CallBack in pairs(self.RoomResumedListeners) do
+				CallBack()
+			end
+		else
+			warn("Room is not in a state that can be resumed")
+		end
+	end
+
+	function NewDungeon:SetTimer(duration: number)
+		self.Timer = duration
+		RunService.Heartbeat:Connect(function()
+			if self.State == "Started" then
+				self:UpdateTimer()
+			end
+		end)
+	end
+
+	function NewDungeon:UpdateTimer()
+		if self.Timer > 0 then
+			self.Timer = self.Timer - 1
+			if self.Timer == 0 then
+				self:ForceFail()
+			end
+		end
 	end
 
 	function NewDungeon:Reset()
@@ -77,6 +138,8 @@ DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
 		self.Room.Model.Name = self.Name
 		self.Room.Model.Parent = Parent
 		self:InitEnemies()
+		self.Score = 0
+		self.Timer = 0
 	end
 
 	function NewDungeon:InitEnemies()
@@ -127,6 +190,24 @@ DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
 				end
 			end
 		end
+	end
+
+	function NewDungeon:HandlePlayerJoin(player: Player)
+		print(player.Name .. " joined the dungeon")
+		-- Add player-specific initialization if needed
+	end
+
+	function NewDungeon:HandlePlayerLeave(player: Player)
+		print(player.Name .. " left the dungeon")
+		-- Handle player leaving the dungeon
+	end
+
+	function NewDungeon:AddScore(points: number)
+		self.Score = self.Score + points
+	end
+
+	function NewDungeon:GetScore(): number
+		return self.Score
 	end
 
 	NewDungeon:InitEnemies()
