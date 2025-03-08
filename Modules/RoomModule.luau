@@ -1,29 +1,33 @@
 local Players = game:GetService("Players")
-local Runservice = game:GetService("RunService")
+local RunService = game:GetService("RunService")
 
 local RoomModule = {}
 
 export type Room = {
 	Name: string,
 	Model: Model,
+	OriginalModel: Model,
 	GetCharactersInRoom: (Room) -> {Model?},
 	GetPlayersInRoom: (Room) -> {Model?},
 	GetTaggedInRoom: (Room, Tag: string) -> {Model?}
 }
 
-function RoomModule.NewRoom(Model: Model, Frame: CFrame, Name: string, Parent: Instance) : Room
+function RoomModule.NewRoom(Model: Model, Frame: CFrame, Name: string, Parent: Instance): Room
 	-- Argument Checks
-	if not Model then error("Model Is Nil") end
-	if not Frame then error("Frame Is Nil") end
-	if not Parent then error("Parent Is Nil") end
+	assert(Model, "Model Is Nil")
+	assert(Frame, "Frame Is Nil")
+	assert(Parent, "Parent Is Nil")
 
 	-- Initialization
-	local NewRoom = {} -- Explicitly define the type here
-	NewRoom.Name = Name or "Room"
-	NewRoom.Model = Model:Clone()
+	local NewRoom = {
+		Name = Name or "Room",
+		OriginalModel = Model,
+		Model = Model:Clone()
+	}
 	NewRoom.Model:PivotTo(Frame)
-	NewRoom.Model.Name = Name
+	NewRoom.Model.Name = NewRoom.Name
 	NewRoom.Model.Parent = Parent
+
 	for _, Part in NewRoom.Model:GetDescendants() do
 		if Part:IsA("BasePart") then
 			Part.Anchored = true
@@ -31,50 +35,56 @@ function RoomModule.NewRoom(Model: Model, Frame: CFrame, Name: string, Parent: I
 	end
 
 	-- Functions
-	function NewRoom:GetCharactersInRoom() : {Model?}
-		local ModelBoundsFrame, ModelBoundsSize = self.Model:GetBoundingBox()
-		-- Debug Bounding Box
-		if Runservice:IsStudio() then
-			local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
-			DebugPart.Name = "DebugPart"
-			DebugPart.Size = ModelBoundsSize
-			DebugPart.CFrame = ModelBoundsFrame
-			DebugPart.Anchored = true
-			DebugPart.CanCollide = false
-			DebugPart.Transparency = 0.75
-			DebugPart.Material = Enum.Material.SmoothPlastic
-			DebugPart.Color = Color3.new(0, 1, 0)
+	if RunService:IsStudio() then
+		function RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
+			if RunService:IsStudio() then
+				local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
+				DebugPart.Name = "DebugPart"
+				DebugPart.Size = ModelBoundsSize
+				DebugPart.CFrame = ModelBoundsFrame
+				DebugPart.Anchored = true
+				DebugPart.CanCollide = false
+				DebugPart.Transparency = 0.75
+				DebugPart.Material = Enum.Material.SmoothPlastic
+				DebugPart.Color = Color3.new(0, 1, 0)
+			end
 		end
+	end
+
+	function NewRoom:GetCharactersInRoom(): {Model?}
+		local ModelBoundsFrame, ModelBoundsSize = self.Model:GetBoundingBox()
+		if RunService:IsStudio() then
+			self:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
+		end
+
 		local PartsInRoom = workspace:GetPartBoundsInBox(ModelBoundsFrame, ModelBoundsSize)
-		local CharacterList: {Model?} = {}
+		local CharacterList = {}
+
 		for _, Part in PartsInRoom do
 			local PartModel = Part:FindFirstAncestorOfClass("Model")
-			if not PartModel then continue end
-			if not PartModel:FindFirstChildOfClass("Humanoid") then continue end
-			if PartModel == self.Model then continue end
-			if table.find(CharacterList, PartModel) then continue end
-			table.insert(CharacterList, PartModel)
+			if PartModel and PartModel:FindFirstChildOfClass("Humanoid") and PartModel ~= self.Model then
+				if not table.find(CharacterList, PartModel) then
+					table.insert(CharacterList, PartModel)
+				end
+			end
 		end
 		return CharacterList
 	end 
 
-	function NewRoom:GetPlayersInRoom() : {Model?}
-		local CharacterList = self:GetCharactersInRoom()
-		local PlayersList: {Model?} = {}
-		for _, Character in CharacterList do
-			if Character then
-				local Player = Players:GetPlayerFromCharacter(Character)
-				if not Player or not Player.Character then continue end
+	function NewRoom:GetPlayersInRoom(): {Model?}
+		local PlayersList = {}
+		for _, Character in self:GetCharactersInRoom() do
+			local Player = Players:GetPlayerFromCharacter(Character)
+			if Player and Player.Character then
 				table.insert(PlayersList, Player.Character)
 			end
 		end
 		return PlayersList
 	end
 
-	function NewRoom:GetTaggedInRoom(Tag: string) : {Model?}
-		local CharacterList = self:GetCharactersInRoom()
-		local TaggedList: {Model?} = {}
-		for _, Character in CharacterList do
+	function NewRoom:GetTaggedInRoom(Tag: string): {Model?}
+		local TaggedList = {}
+		for _, Character in self:GetCharactersInRoom() do
 			if Character and Character:HasTag(Tag) then
 				table.insert(TaggedList, Character)
 			end
