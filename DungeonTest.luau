@@ -12,11 +12,9 @@ Dungeon:Start()
 
 task.wait(4)
 
-
 print("Players:", Dungeon.Room:GetPlayersInRoom())
 print("Enemies:", Dungeon.Enemies)
 print("Characters:", Dungeon.Room:GetCharactersInRoom())
-
 
 Dungeon:ConnectToWin(function()
 	print("Players Won")
@@ -25,8 +23,17 @@ Dungeon:ConnectToFail(function()
 	print("Players Failed!")
 end)
 
-Dungeon:ForceWin()
+-- Utilize additional features
+Dungeon:EliminateEnemies()
+task.wait(1)
 
+Dungeon:EliminatePlayers()
+task.wait(1)
+
+Dungeon:UnanchorEnemies()
+task.wait(1)
+
+Dungeon:ForceWin()
 task.wait(1)
 
 print("Remaining Enemies:", Dungeon.Enemies)
@@ -40,3 +47,16 @@ task.wait(1)
 print("Players:", Dungeon.Room:GetPlayersInRoom())
 print("Enemies:", Dungeon.Enemies)
 print("Characters:", Dungeon.Room:GetCharactersInRoom())
+
+Dungeon:Start()
+
+task.wait(4)
+
+print("Players after reset:", Dungeon.Room:GetPlayersInRoom())
+print("Enemies after reset:", Dungeon.Enemies)
+print("Characters after reset:", Dungeon.Room:GetCharactersInRoom())
+
+Dungeon:ForceFail()
+task.wait(1)
+
+print("Remaining Enemies after force fail:", Dungeon.Enemies)
