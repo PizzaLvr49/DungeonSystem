@@ -1,5 +1,5 @@
 local Players = game:GetService("Players")
-local Runservice = game:GetService("RunService")
+local RunService = game:GetService("RunService")
 local RoomModule = require(script.Parent)
 
 local DungeonRoom = {}
@@ -9,88 +9,125 @@ export type Dungeon = {
 	Room: RoomModule.Room,
 	State: string,
 	Enemies: {Humanoid?},
-	ForceWin: () -> nil,
-	ForceFail: () -> nil,
+	ForceWin: (Dungeon) -> nil,
+	ForceFail: (Dungeon) -> nil,
 	ConnectToWin: (Dungeon, callback: () -> any) -> nil,
 	ConnectToFail: (Dungeon, callback: () -> any) -> nil,
-	Start: () -> nil
+	Start: (Dungeon) -> nil,
+	Reset: (Dungeon) -> nil
 }
 
-DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room) : Dungeon
-	local NewDungeon = {}
-	NewDungeon.Name = Room.Name
-	NewDungeon.Room = Room
-	NewDungeon.Enemies = {}
-	NewDungeon.State = "Inactive"
-	for _,V in NewDungeon.Room.Model:GetDescendants() do
-		local function EnemyDied()
-			print(V.Parent.Name.." Died")
-			task.wait(3)
-			V.Parent:Destroy()
-		end
-		if V:IsA("Humanoid") then
-			table.insert(NewDungeon.Enemies, V)
-			V:GetPropertyChangedSignal("Health"):Connect(function()
-				local Value = V.Health
-				if Value <= 0 then
-					EnemyDied()
-				end
-			end)
-		end
-	end
-	print("Room Enemies:", NewDungeon.Enemies)
-
-	local RoomWinListeners = {}
-	local RoomFailListeners = {}
+DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
+	local NewDungeon = {
+		Name = Room.Name,
+		Room = Room,
+		Enemies = {},
+		State = "Inactive",
+		RoomWinListeners = {},
+		RoomFailListeners = {}
+	}
 
 	function NewDungeon:ForceWin()
-		if self.Room.State ~= "Started" then warn("Room Has Not Been Started Yet") return end
-		for _, Enemy in pairs(self.Room:GetTaggedInRoom("Enemy")) do
-			if Enemy then
-				local Humanoid = Enemy:FindFirstChildOfClass("Humanoid")
-				if not Humanoid then continue end
-				Humanoid.Health = 0
-			end
+		if self.State ~= "Started" then
+			warn("Room Has Not Been Started Yet or Has Already Been Completed")
+			return
 		end
-		for _, CallBack in pairs(RoomWinListeners) do
+		for _, CallBack in pairs(self.RoomWinListeners) do
 			CallBack()
 		end
-		NewDungeon.Room.State = "Win"
+		self.Room.State = "Win"
+		self:EliminateEnemies()
 	end
 
 	function NewDungeon:ForceFail()
-		if self.Room.State ~= "Started" then warn("Room Has Not Been Started Yet") return end
-		for _, Player in pairs(self.Room:GetPlayersInRoom()) do
-			if Player then
-				local Humanoid = Player:FindFirstChildOfClass("Humanoid")
-				if not Humanoid then continue end
-				Humanoid.Health = 0
-			end
+		if self.State ~= "Started" then
+			warn("Room Has Not Been Started Yet")
+			return
 		end
-		for _, CallBack in pairs(RoomFailListeners) do
+		self:EliminatePlayers()
+		for _, CallBack in pairs(self.RoomFailListeners) do
 			CallBack()
 		end
-		self.Room.State = "Fail"
+		self.State = "Fail"
 	end
 
 	function NewDungeon:ConnectToWin(callback: () -> any)
-		table.insert(RoomWinListeners, callback)
+		table.insert(self.RoomWinListeners, callback)
 	end
 
 	function NewDungeon:ConnectToFail(callback: () -> any)
-		table.insert(RoomFailListeners, callback)
+		table.insert(self.RoomFailListeners, callback)
 	end
 
 	function NewDungeon:Start()
-		self.Room.State = "Started"
-		for _,Enemy in self.Enemies do
-			for _,Part in Enemy.Parent:GetDescendants() do
+		self.State = "Started"
+		self:UnanchorEnemies()
+	end
+
+	function NewDungeon:Reset()
+		self.State = "Inactive"
+		local Parent = self.Room.Model.Parent
+		local Pivot = self.Room.Model:GetPivot()
+		self.Room.Model:Destroy()
+		self.Room.Model = self.Room.OriginalModel:Clone()
+		self.Room.Model:PivotTo(Pivot)
+		self.Room.Model.Name = self.Name
+		self.Room.Model.Parent = Parent
+		self:InitEnemies()
+	end
+
+	function NewDungeon:InitEnemies()
+		for _, V in self.Room.Model:GetDescendants() do
+			if V:IsA("Humanoid") then
+				table.insert(self.Enemies, V)
+				V:GetPropertyChangedSignal("Health"):Connect(function()
+					if V.Health <= 0 then
+						self:EnemyDied(V)
+					end
+				end)
+			end
+		end
+	end
+
+	function NewDungeon:EnemyDied(enemy)
+		print(enemy.Parent.Name .. " Died")
+		table.remove(self.Enemies, table.find(self.Enemies, enemy))
+		if #self.Enemies == 0 then
+			self:ForceWin()
+		end
+		task.wait(3)
+		enemy.Parent:Destroy()
+	end
+
+	function NewDungeon:EliminateEnemies()
+		for _, Enemy in self.Enemies do
+			if Enemy then
+				Enemy.Health = 0
+			end
+		end
+	end
+
+	function NewDungeon:EliminatePlayers()
+		for _, Player in self.Room:GetPlayersInRoom() do
+			local Humanoid = Player:FindFirstChildOfClass("Humanoid")
+			if Humanoid then
+				Humanoid.Health = 0
+			end
+		end
+	end
+
+	function NewDungeon:UnanchorEnemies()
+		for _, Enemy in self.Enemies do
+			for _, Part in Enemy.Parent:GetDescendants() do
 				if Part:IsA("BasePart") then
 					Part.Anchored = false
 				end
 			end
 		end
 	end
+
+	NewDungeon:InitEnemies()
+	print("Room Enemies:", NewDungeon.Enemies)
 
 	return NewDungeon
 end
