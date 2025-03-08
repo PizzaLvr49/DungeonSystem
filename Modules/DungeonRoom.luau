@@ -14,7 +14,10 @@ export type Dungeon = {
 	ConnectToWin: (Dungeon, callback: () -> any) -> nil,
 	ConnectToFail: (Dungeon, callback: () -> any) -> nil,
 	Start: (Dungeon) -> nil,
-	Reset: (Dungeon) -> nil
+	Reset: (Dungeon) -> nil,
+	EliminateEnemies: () -> nil,
+	EliminatePlayers: () -> nil,
+	UnanchorEnemies: () -> nil,
 }
 
 DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
