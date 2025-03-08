@@ -35,20 +35,17 @@ function RoomModule.NewRoom(Model: Model, Frame: CFrame, Name: string, Parent: I
 	end
 
 	-- Functions
-	if RunService:IsStudio() then
-		function RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
-			if RunService:IsStudio() then
-				local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
-				DebugPart.Name = "DebugPart"
-				DebugPart.Size = ModelBoundsSize
-				DebugPart.CFrame = ModelBoundsFrame
-				DebugPart.Anchored = true
-				DebugPart.CanCollide = false
-				DebugPart.Transparency = 0.75
-				DebugPart.Material = Enum.Material.SmoothPlastic
-				DebugPart.Color = Color3.new(0, 1, 0)
-			end
-		end
+	function RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
+		if not RunService:IsStudio() then warn("Debugging is only meant for developmental purposes") end
+		local DebugPart = self.Model:FindFirstChild("DebugPart") or Instance.new("Part", self.Model)
+		DebugPart.Name = "DebugPart"
+		DebugPart.Size = ModelBoundsSize
+		DebugPart.CFrame = ModelBoundsFrame
+		DebugPart.Anchored = true
+		DebugPart.CanCollide = false
+		DebugPart.Transparency = 0.75
+		DebugPart.Material = Enum.Material.SmoothPlastic
+		DebugPart.Color = Color3.new(0, 1, 0)
 	end
 
 	function NewRoom:GetCharactersInRoom(): {Model?}
