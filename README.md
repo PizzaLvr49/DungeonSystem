@@ -52,11 +52,3 @@ In Studio mode, room bounding boxes can be drawn:
 ```lua
 RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
 ```
-
-## Contributing
-
-If you wish to make a contribution to this project, you can fork the repository and make a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
