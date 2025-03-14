@@ -1,13 +1,13 @@
 # DungeonSystem
 
-DungeonSystem is a Roblox module designed to manage dungeon rooms, including creating rooms, handling players and enemies within those rooms, and managing dungeon states like win and fail conditions.
+DungeonSystem is a Roblox module employed to manage dungeon rooms, including creating rooms, managing players and enemies in the rooms, and managing dungeon states like win and fail states.
 
 ## Features
 
 - Create and manage rooms.
-- Track players and enemies within rooms.
-- Handle dungeon start, reset, win, and fail states.
-- Debugging tools for visualizing room boundaries in Studio mode.
+- Track players and enemies in rooms.
+- Manage start, reset, win, and fail states of dungeons.
+- Debugging features for visualizing room boundaries in Studio mode.
 
 ## Installation
 
@@ -33,7 +33,7 @@ local dungeon = DungeonRoom.ConvertToDungeon(newRoom)
 dungeon:Start()
 ```
 
-### Handling Dungeon Events
+### Dungeon Event Handling
 
 ```lua
 dungeon:ConnectToWin(function()
@@ -47,7 +47,7 @@ end)
 
 ### Debugging
 
-In Studio mode, bounding boxes for rooms can be visualized:
+In Studio mode, room bounding boxes can be drawn:
 
 ```lua
 RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
@@ -55,7 +55,7 @@ RoomModule:DebugBoundingBox(ModelBoundsFrame, ModelBoundsSize)
 
 ## Contributing
 
-If you would like to contribute to this project, please fork the repository and submit a pull request.
+If you wish to make a contribution to this project, you can fork the repository and make a pull request.
 
 ## License
 
