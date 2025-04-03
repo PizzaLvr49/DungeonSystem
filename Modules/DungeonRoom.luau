@@ -192,16 +192,6 @@ DungeonRoom.ConvertToDungeon = function(Room: RoomModule.Room): Dungeon
 		end
 	end
 
-	function NewDungeon:HandlePlayerJoin(player: Player)
-		print(player.Name .. " joined the dungeon")
-		-- Add player-specific initialization if needed
-	end
-
-	function NewDungeon:HandlePlayerLeave(player: Player)
-		print(player.Name .. " left the dungeon")
-		-- Handle player leaving the dungeon
-	end
-
 	function NewDungeon:AddScore(points: number)
 		self.Score = self.Score + points
 	end
